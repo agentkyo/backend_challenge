@@ -51,11 +51,15 @@ Base.metadata.create_all(engine)
 
 
 class Database:
-    def __init__(self):
+    def __init__(self, tracback_code: str = ""):
         self.session = sessionmaker(bind=engine)()
         self.utilities = Utilities()
         self.log = Log("Database")
-        self.traceback_code = uuid.uuid4()
+
+        if tracback_code == "":
+            self.traceback_code = uuid.uuid4()
+        else:
+            self.traceback_code = tracback_code
 
     def add_role(self, description: str) -> bool:
         if description == "":

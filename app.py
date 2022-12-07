@@ -24,7 +24,7 @@ def add_user():
 
             PAYLOAD = UserSchema().load(recived_data)
 
-            db = Database()
+            db = Database(REQUEST_TRACEBACK_CODE)
 
             if PAYLOAD["password"] is None or PAYLOAD["password"] == "":
                 password = Utilities().generate_random_password()
@@ -61,7 +61,7 @@ def get_user_role(id):
     REQUEST_TRACEBACK_CODE = uuid.uuid4()
 
     try:
-        db = Database()
+        db = Database(REQUEST_TRACEBACK_CODE)
 
         role_id = db.get_user_role(user_id=id)
 
