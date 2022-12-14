@@ -202,7 +202,8 @@ def main(argv):
     print('Press Crtl+{0} to exit'.format('Break' if os.name == 'nt' else 'C'))
 
     '''
-    Não entendi o motivo do Flask estar sendo utilizado, se não for necessário, seria interessante remover essa dependência, fazer a conexão do banco direto no SQLALchemy.
+Não entendi o motivo do Flask estar sendo utilizado, se não for necessário;
+seria interessante remover essa dependência, fazer a conexão do banco direto no SQLALchemy.
     '''
     app = Flask(__name__)
     handler = RotatingFileHandler('bot.log', maxBytes=10000, backupCount=1)
@@ -213,7 +214,8 @@ def main(argv):
     config = configparser.ConfigParser()
 
     '''
-    Para evitar um novo commit sempre que for necessário alterar o tempo de execução, seria interessante ter esse valor salvo como uma variavel de ambiente.
+Para evitar um novo commit sempre que for necessário alterar o tempo de execução;
+seria interessante ter esse valor salvo como uma variavel de ambiente.
     '''
     config.read('/tmp/bot/settings/config.ini')
 
@@ -238,7 +240,9 @@ def task1(db):
 
 
     '''
-    Exportar dados de uma tabela para um arquivo Excel, consome recurso e espaço em disco, o Google Sheets pode receber via API estes dados e armazenar em uma planilha online, minha primeira sugestão seria salvar os dados necessários em uma planilha realtime do Sheets.
+Exportar dados de uma tabela para um arquivo Excel, consome recurso e espaço em disco.
+O Google Sheets pode receber via API estes dados e armazenar em uma planilha online;
+minha primeira sugestão seria salvar os dados necessários em uma planilha realtime do Sheets.
     '''
     file_name = 'data_export_{0}.xlsx'.format(datetime.now().strftime("%Y%m%d%H%M%S"))
     file_path = os.path.join(os.path.curdir, file_name)
@@ -246,8 +250,8 @@ def task1(db):
     worksheet = workbook.add_worksheet()
 
     '''
-    Já que foi importada a lib do SQL Alchemy, esta query poderia ser realizada com o ORM.
-    Select * dependendo do tamanho da tabela, pode consumir muito recurso do banco de dados.
+Já que foi importada a lib do SQL Alchemy, esta query poderia ser realizada com o ORM.
+Select * dependendo do tamanho da tabela, pode consumir muito recurso do banco de dados.
     '''
     orders = db.session.execute('SELECT * FROM users;')
     
@@ -263,7 +267,8 @@ def task1(db):
     
 '''
 Escrever linha por linha, pode levar o código a demorar mais do que o necessário e consumir muito recurso.
-Aqui é possivel utilizar o pandas, escrever um dataframe e postar no Google Sheets de forma mais rápida do que simplesmente appendar linhas em um arquivo Excel.
+Aqui é possivel utilizar o pandas, escrever um dataframe e postar no Google Sheets.
+Forma mais rápida do que simplesmente appendar linhas em um arquivo Excel.
 '''
 
     for order in orders:
