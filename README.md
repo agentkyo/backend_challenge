@@ -182,6 +182,119 @@ _De acordo com o log capturado, o que pode estar originando a falha?_
 
 7. _Ajude-nos fazendo o Code Review do código de um robô/rotina que exporta os dados da tabela users de tempos em tempos. O código foi disponibilizado no mesmo repositório do git hub dentro da pasta bot. ATENÇÃO: Não é necessário implementar as revisões, basta apenas anota-las em um arquivo texto ou em forma de comentários no código._
 
+> As sugestões estão expressas em comentários no código:
+
+
+``` python
+
+# -*- coding: utf-8 -*-
+import os, sys, traceback, logging, configparser
+import xlsxwriter
+from datetime import datetime, timedelta, timezone
+from apscheduler.schedulers.blocking import BlockingScheduler
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
+from logging.handlers import RotatingFileHandler
+
+def main(argv):
+    greetings()
+
+    print('Press Crtl+{0} to exit'.format('Break' if os.name == 'nt' else 'C'))
+
+    '''
+    Não entendi o motivo do Flask estar sendo utilizado, se não for necessário, seria interessante remover essa dependência, fazer a conexão do banco direto no SQLALchemy.
+    '''
+    app = Flask(__name__)
+    handler = RotatingFileHandler('bot.log', maxBytes=10000, backupCount=1)
+    handler.setLevel(logging.INFO)
+    app.logger.addHandler(handler)
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql+psycopg2://postgres:123mudar@127.0.0.1:5432/bot_db'
+    db = SQLAlchemy(app)
+    config = configparser.ConfigParser()
+
+    '''
+    Para evitar um novo commit sempre que for necessário alterar o tempo de execução, seria interessante ter esse valor salvo como uma variavel de ambiente.
+    '''
+    config.read('/tmp/bot/settings/config.ini')
+
+    var1 = int(config.get('scheduler','IntervalInMinutes'))
+    app.logger.warning('Intervalo entre as execucoes do processo: {}'.format(var1))
+    scheduler = BlockingScheduler()
+
+    task1_instance = scheduler.add_job(task1(db), 'interval', id='task1_job', minutes=var1)
+
+    try:
+        scheduler.start()
+    except(KeyboardInterrupt, SystemExit):
+        pass
+
+def greetings():
+    print('             ##########################')
+    print('             # - ACME - Tasks Robot - #')
+    print('             # - v 1.0 - 2020-07-28 - #')
+    print('             ##########################')
+
+def task1(db):
+
+
+    '''
+    Exportar dados de uma tabela para um arquivo Excel, consome recurso e espaço em disco, o Google Sheets pode receber via API estes dados e armazenar em uma planilha online, minha primeira sugestão seria salvar os dados necessários em uma planilha realtime do Sheets.
+    '''
+    file_name = 'data_export_{0}.xlsx'.format(datetime.now().strftime("%Y%m%d%H%M%S"))
+    file_path = os.path.join(os.path.curdir, file_name)
+    workbook = xlsxwriter.Workbook(file_path)
+    worksheet = workbook.add_worksheet()
+
+    '''
+    Já que foi importada a lib do SQL Alchemy, esta query poderia ser realizada com o ORM.
+    Select * dependendo do tamanho da tabela, pode consumir muito recurso do banco de dados.
+    '''
+    orders = db.session.execute('SELECT * FROM users;')
+    
+    index = 1
+    
+    worksheet.write('A{0}'.format(index),'Id')
+    worksheet.write('B{0}'.format(index),'Name')
+    worksheet.write('C{0}'.format(index),'Email')
+    worksheet.write('D{0}'.format(index),'Password')
+    worksheet.write('E{0}'.format(index),'Role Id')
+    worksheet.write('F{0}'.format(index),'Created At')
+    worksheet.write('G{0}'.format(index),'Updated At')
+    
+'''
+Escrever linha por linha, pode levar o código a demorar mais do que o necessário e consumir muito recurso.
+Aqui é possivel utilizar o pandas, escrever um dataframe e postar no Google Sheets de forma mais rápida do que simplesmente appendar linhas em um arquivo Excel.
+'''
+
+    for order in orders:
+        index = index + 1
+
+        print('Id: {0}'.format(order[0]))
+        worksheet.write('A{0}'.format(index),order[0])
+        print('Name: {0}'.format(order[1]))
+        worksheet.write('B{0}'.format(index),order[1])
+        print('Email: {0}'.format(order[2]))
+        worksheet.write('C{0}'.format(index),order[2])
+        print('Password: {0}'.format(order[3]))
+        worksheet.write('D{0}'.format(index),order[3])
+        print('Role Id: {0}'.format(order[4]))
+        worksheet.write('E{0}'.format(index),order[4])
+        print('Created At: {0}'.format(order[5]))
+        worksheet.write('F{0}'.format(index),order[5])
+        print('Updated At: {0}'.format(order[6]))
+        worksheet.write('G{0}'.format(index),order[6])
+        
+    workbook.close()
+    print('job executed!')
+
+if __name__ == '__main__':
+    main(sys.argv)
+    
+   ```
+
+
+
+
 ## QUESTION
 
 8. _Qual ou quais Padrões de Projeto/Design Patterns você utilizaria para normalizar serviços de terceiros (tornar múltiplas interfaces de diferentes fornecedores uniforme), por exemplo serviços de disparos de e-mails, ou então disparos de SMS. ATENÇÃO: Não é necessário implementar o Design Pattern, basta descrever qual você utilizaria e por quais motivos optou pelo mesmo._
